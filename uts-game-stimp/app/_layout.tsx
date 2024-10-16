@@ -1,37 +1,36 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Stack, useRouter } from "expo-router";
+import { AuthProvider,useAuth } from "./authContext";
+import { useEffect } from "react";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
+function RootLayout() {
+  const { isLoggedIn } = useAuth(); 
+  const router = useRouter();
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (!isLoggedIn) {
+      router.replace("/login" as any);
+    } else {
+      router.replace("/");
     }
-  }, [loaded]);
+  }, [isLoggedIn]);
 
-  if (!loaded) {
-    return null;
-  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ title: 'Home' }} />
+      <Stack.Screen name="game/drawer" options={{ headerShown: false }} />
+      <Stack.Screen name="game/grid" options={{ headerShown: false }} /> 
+      <Stack.Screen name="game/highscore" options={{ title: 'High Score' }} /> 
+      <Stack.Screen name="main" options={{ headerShown:false }} />
+
+    </Stack >
   );
 }
+export default function Layout() {
+  return (
+    <AuthProvider>
+      <RootLayout />
+    </AuthProvider>
+  );
+}
+
+
