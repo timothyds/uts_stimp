@@ -61,8 +61,8 @@ const Grid: React.FC<GridProps> = ({
         return newCount;
       });
     } else {
-     // addScore(-10); // Adjust score for an incorrect guess
-      endGame(score); // Now this will work
+     // addScore(-10); 
+      endGame(score); 
     }
   };
 
@@ -104,8 +104,8 @@ const App: React.FC = (navigation) => {
     if (level === 1) return { rows: 3, columns: 3 };
     if (level === 2) return { rows: 3, columns: 4 };
     if (level === 3) return { rows: 3, columns: 5 };
-    if (level === 4) return { rows: 4, columns: 5 };
-    if (level === 5) return { rows: 5, columns: 5 };
+    if (level === 4) return { rows: 3, columns: 6 };
+    if (level === 5) return { rows: 3, columns: 7 };
   };
 
   const { rows, columns } = generateLevel();
@@ -130,6 +130,8 @@ const App: React.FC = (navigation) => {
 
   const endGame = async (finalScore: number) => {
     Alert.alert('Game Over', `Your final score is ${finalScore}`);
+    await AsyncStorage.setItem('score', finalScore.toString());
+    clearInterval(timerGame);
     await saveScore(finalScore);
     router.push('/game/score'); // Navigate to score screen
   };
@@ -142,8 +144,10 @@ const App: React.FC = (navigation) => {
         // Check if the user already has a score
         const userIndex = scores.findIndex((score: any) => score.playerName === username);
         if (userIndex !== -1) {
-            // Update existing score
-            scores[userIndex].score = finalScore;
+            if(finalScore > scores[userIndex].score){
+              // Update existing score
+              scores[userIndex].score = finalScore;
+            }
         } else {
             // Add new score
             scores.push({ score: finalScore, playerName: username });

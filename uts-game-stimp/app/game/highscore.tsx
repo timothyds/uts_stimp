@@ -43,7 +43,7 @@ const HighScores = () => {
                 <Text style={styles.noScoreText}>No scores available.</Text>
             )}
             <View style={styles.buttonContainer}>
-                <Button onPress={() => router.navigate('/game/grid')} title="Play Again" />
+                <Button onPress={() => router.replace('/game/grid')} title="Play Again" />
                 <Button onPress={() => router.navigate('/main')} title="Main Menu" />
             </View>
         </View>

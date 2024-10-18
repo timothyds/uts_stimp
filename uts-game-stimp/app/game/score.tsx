@@ -1,5 +1,5 @@
 import { useAuth } from '../authContext'; // Import the useAuth hook
-import { router } from 'expo-router';
+import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from '@rneui/themed';
@@ -12,12 +12,13 @@ const Score = () => {
   useEffect(() => {
     const fetchCurrentScore = async () => {
       try {
-        const storedScores = await AsyncStorage.getItem('highScores');
-        if (storedScores) {
-          const scores = JSON.parse(storedScores);
-          const userScore = scores.find((scoreObj: any) => scoreObj.playerName === username);
-          setCurrentScore(userScore ? userScore.score : null); // Set the current score if it exists
-        }
+        const storedScores = await AsyncStorage.getItem('score');
+        setCurrentScore(storedScores);
+        // if (storedScores) {
+        //   const scores = JSON.parse(storedScores);
+        //   const userScore = scores.find((scoreObj: any) => scoreObj.playerName === username);
+        //   setCurrentScore(userScore ? userScore.score : null); // Set the current score if it exists
+        // }
       } catch (error) {
         console.error('Error fetching high scores', error);
       }
@@ -35,7 +36,7 @@ const Score = () => {
       ) : (
         <Text style={styles.noScoreText}>No score available.</Text>
       )}
-      <Button onPress={() => router.navigate('/game/grid')}>Play Again</Button>
+      <Button onPress={() => router.replace('/game/grid')}>Play Again</Button>
       <Button onPress={() => router.navigate('/game/highscore')}>HighScore</Button>
       <Button onPress={() => router.navigate('/main')}>Main Menu</Button>
     </View>
