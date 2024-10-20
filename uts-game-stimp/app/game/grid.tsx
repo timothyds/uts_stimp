@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Text, Alert } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef, MutableRefObject } from 'react';
+import { View, StyleSheet, Text, Alert, Animated, Easing} from 'react-native';
 import { Button, LinearProgress } from '@rneui/themed';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,17 +26,26 @@ const Grid: React.FC<GridProps> = ({
   resetTimerGame,
   addScore,
   endGame,
-  score
+  score,
 }) => {
   const [activeKotak, setActiveKotak] = useState<number[]>([]);
   const [incorrectKotak, setIncorrectKotak] = useState<number[]>([]);
   const [correctGuessCount, setCorrectGuessCount] = useState<number>(0);
+  
   const boxSize = 50;
+
+  const animations: MutableRefObject<Animated.Value[]> = useRef(Array(rows * columns).fill(null).map(() => new Animated.Value(0)));
+
+  // Update animations whenever the grid size changes
+  useEffect(() => {
+    animations.current = Array(rows * columns).fill(null).map(() => new Animated.Value(0));
+  }, [rows, columns]); // Depend on rows and columns
+
 
   useEffect(() => {
     setActiveKotak(highlightedKotak);
     setIncorrectKotak([]);
-
+    
     const timer = setTimeout(() => {
       setActiveKotak([]);
       setIncorrectKotak([]);
@@ -49,12 +58,25 @@ const Grid: React.FC<GridProps> = ({
     if (highlightedKotak.includes(index)) {
       // Correct guess logic
       setActiveKotak((prevKotak) => [...prevKotak, index]);
+
+      const animation = animations.current[index];
+      if (animation) {
+        Animated.timing(animation, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }).start(() => {
+          animation.setValue(0); // Reset the animation after completion
+        });
+      }
+
       setCorrectGuessCount((prevCount) => {
         const newCount = prevCount + 1;
         addScore(5);
         if (newCount === numberCorrect) {
           setCorrectGuessCount(0);
-          setActiveKotak([]);
+          setActiveKotak([]);//
           resetTimerGame();
           onLevelUp();
         }
@@ -66,28 +88,51 @@ const Grid: React.FC<GridProps> = ({
     }
   };
 
+  const getBoxStyle = (index: number) => {
+    // Ensure we are not trying to access an undefined animation
+    const animation = animations.current[index];
+    
+    if (!animation) {
+      return {
+        backgroundColor: activeKotak.includes(index) ? 'green' : 'gray',
+      };
+    }
+  
+    const rotateAnimation = animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    });
+  
+    return {
+      transform: [{ rotate: rotateAnimation }],
+      backgroundColor: activeKotak.includes(index) ? 'green' : 'gray',
+    };
+  };
+  
+
   return (
     <View style={[styles.container, { width: columns * boxSize + 10, height: rows * boxSize + 10 }]}>
       {Array.from({ length: rows * columns }).map((_, index) => (
-        <View
+        <Animated.View
           key={index}
           style={[
             styles.box,
+            getBoxStyle(index),
             {
               width: boxSize - 10,
               height: boxSize - 10,
-              backgroundColor: activeKotak.includes(index)
-                ? 'green'
-                : incorrectKotak.includes(index)
-                ? 'red'
-                : 'gray',
+              // backgroundColor: activeKotak.includes(index)
+              //   ? 'green'
+              //   : incorrectKotak.includes(index)
+              //   ? 'red'
+              //   : 'gray',
             },
           ]}
         >
           <View style={styles.buttonContainer}>
             <Button size='lg' title="" onPress={() => handleBoxPress(index)} color="transparent" />
           </View>
-        </View>
+        </Animated.View>
       ))}
     </View>
   );
