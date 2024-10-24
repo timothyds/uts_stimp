@@ -56,8 +56,11 @@ const Grid: React.FC<GridProps> = ({
 
   const handleBoxPress = (index: number) => {
     if (highlightedKotak.includes(index)) {
-      // Correct guess logic
-      setActiveKotak((prevKotak) => [...prevKotak, index]);
+      
+      if(activeKotak.includes(index)){
+        return;
+      } else {
+        setActiveKotak((prevKotak) => [...prevKotak, index]);
 
       const animation = animations.current[index];
       if (animation) {
@@ -67,7 +70,7 @@ const Grid: React.FC<GridProps> = ({
           easing: Easing.linear,
           useNativeDriver: true,
         }).start(() => {
-          animation.setValue(0); // Reset the animation after completion
+          animation.setValue(0); 
         });
       }
 
@@ -82,6 +85,7 @@ const Grid: React.FC<GridProps> = ({
         }
         return newCount;
       });
+      }
     } else {
      // addScore(-10); 
       endGame(score); 
@@ -89,7 +93,7 @@ const Grid: React.FC<GridProps> = ({
   };
 
   const getBoxStyle = (index: number) => {
-    // Ensure we are not trying to access an undefined animation
+    
     const animation = animations.current[index];
     
     if (!animation) {
